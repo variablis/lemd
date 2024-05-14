@@ -1,7 +1,7 @@
 const express = require('express')
 const axios = require('axios')
-var xmlparser = require('express-xml-bodyparser');
-var xml2js = require('xml2js');
+const xmlparser = require('express-xml-bodyparser');
+const xml2js = require('xml2js');
 
 
 const app = express()
@@ -11,9 +11,9 @@ app.use(express.json());
 app.use(xmlparser({explicitRoot: false, explicitArray: false}));
 
 
-// Custom middleware for logging
+// middleware for logging
 app.use((req, res, next) => {
-    // Log incoming message
+    // log incoming
     const incomingLog = {
         type: "messageIn",
         method: req.method,
@@ -23,8 +23,7 @@ app.use((req, res, next) => {
     };
     console.log(incomingLog);
 
-
-    // Buffer the original send method
+    // buffer original send method
     const originalSend = res.send;
     let responseBody;
     res.send = function (body) {
@@ -32,7 +31,7 @@ app.use((req, res, next) => {
         originalSend.call(this, body);
     };
 
-    // Log outgoing message
+    // log outgoing
     res.on('finish', () => {
         const outgoingLog = {
             type: "messageOut",
@@ -47,36 +46,11 @@ app.use((req, res, next) => {
 
 });
 
-// build xml or json as needed
-function parseObj(res, code, results, xml){
-    if(xml) {
-        var builder = new xml2js.Builder();
-        var xml = builder.buildObject(results);
-        res.status(code).set('Content-Type', 'application/xml').send(xml);
-    } 
-    else {
-        res.status(code).json(results);
-    }
-}
-
-
-// Fetch products from the online API
-async function fetchProducts(query, limit, skip) {
-    const response = await axios.get('https://dummyjson.com/products/search', {
-        params: {
-            q: query,
-            skip: skip,
-            limit: limit
-        }
-    });
-    return response.data;
-}
-
-// Route handler for your API endpoint
-app.post('/products', async (req, res, next) => {
+// route handler for / endpoint
+app.post('/', async (req, res, next) => {
     const { query, page } = req.body;
 
-    // Validate query parameter
+    // validate request parameters
     if (!query || typeof query !== 'string' || query.length < 3 || query.length > 10) {
         const error = new Error('Invalid or missing query parameter.');
         error.statusCode = 400;
@@ -90,14 +64,13 @@ app.post('/products', async (req, res, next) => {
         return next(error);
     }
 
-    // Fetch products from web
+    // fetch products
     try {
         const limit = 2;
         const skip = (pageNumber - 1) * limit;
         const response = await fetchProducts(query, limit, skip);
         const { products, total } = response;
 
-        // Ensure that the requested page exists
         const pageCount = Math.ceil(total / limit);
         if (pageNumber > pageCount) {
             const error = new Error('Requested page does not exist.');
@@ -105,7 +78,6 @@ app.post('/products', async (req, res, next) => {
             return next(error);
         }
 
-        // Extract required fields from products
         const results = products.map(product => {
             const finalPrice = parseFloat((product.price * (1 - product.discountPercentage / 100)).toFixed(2));
             return {
@@ -122,7 +94,14 @@ app.post('/products', async (req, res, next) => {
     }
 });
 
-// Custom error handling middleware
+// middleware to handle requests for undefined routes
+app.use((req, res, next) => {
+    const error = new Error('Bad Request.');
+    error.statusCode = 400;
+    next(error);
+})
+
+// error handling middleware
 app.use((err, req, res, next) => {
     res.locals.errorStack = err.stack;
     const results = { 'code': err.statusCode, 'message': err.message }
@@ -133,3 +112,28 @@ app.use((err, req, res, next) => {
 app.listen(port, () => {
   console.log(`App listening on port ${port}`)
 })
+
+
+// build xml or json as needed
+function parseObj(res, code, results, xml){
+    if(xml) {
+        var builder = new xml2js.Builder();
+        var xml = builder.buildObject(results);
+        res.status(code).set('Content-Type', 'application/xml').send(xml);
+    } 
+    else {
+        res.status(code).json(results);
+    }
+}
+
+// fetch products from online
+async function fetchProducts(query, limit, skip) {
+    const response = await axios.get('https://dummyjson.com/products/search', {
+        params: {
+            q: query,
+            skip: skip,
+            limit: limit
+        }
+    });
+    return response.data;
+}
