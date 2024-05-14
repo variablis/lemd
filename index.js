@@ -18,7 +18,7 @@ const buildError = (code=400, msg='Bad Request response.') => {
 }
 
 // build xml or json response as needed
-const buildObj = (req, res, code, results) => {
+const buildObject = (req, res, code, results) => {
     try {
         if(req.accepts('json')) {
             res.status(code).json(results)
@@ -118,7 +118,7 @@ app.post('/', async (req, res, next) => {
             }
         })
 
-        buildObj(req, res, 200, results)
+        buildObject(req, res, 200, results)
         
     } catch (err) {
         next(err)
@@ -134,7 +134,7 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
     res.locals.errorStack = err.stack
     const results = { 'code': err.statusCode, 'message': err.message }
-    buildObj(req, res, err.statusCode, results)
+    buildObject(req, res, err.statusCode, results)
 })
 
 
