@@ -1,7 +1,0 @@
-{"query": "phone", "page": 1}
-
-
-<request>
-    <query>phone</query>
-    <page>1</page>
-</request>
