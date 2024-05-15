@@ -5,6 +5,7 @@ const xml2js = require('xml2js')
 
 const app = express()
 const port = 3000
+const url = 'https://dummyjson.com/products/search'
 
 app.use(express.json())
 app.use(xmlparser({explicitRoot: false, explicitArray: false}))
@@ -35,7 +36,7 @@ const buildObject = (req, res, code, results) => {
 // fetch products from server
 const fetchProducts = async (query, limit, skip) => {
     try {
-        const response = await axios.get('https://dummyjson.com/products/search', {
+        const response = await axios.get(url, {
             params: {
                 q: query,
                 skip: skip,
@@ -53,7 +54,7 @@ const fetchProducts = async (query, limit, skip) => {
 app.use((req, res, next) => {
     // log incoming
     const incomingLog = {
-        type: "messageIn",
+        type: 'messageIn',
         method: req.method,
         path: req.url,
         body: req.rawBody? req.rawBody : req.body, // rawbody for xml
@@ -72,7 +73,7 @@ app.use((req, res, next) => {
     // log outgoing
     res.on('finish', () => {
         const outgoingLog = {
-            type: "messageOut",
+            type: 'messageOut',
             dateTime: new Date(Date.now()).toISOString(),
             body: responseBody,
             fault: res.locals.errorStack? res.locals.errorStack : ''
@@ -81,7 +82,6 @@ app.use((req, res, next) => {
     })
 
     next()
-
 });
 
 // route handler for / endpoint
@@ -110,10 +110,9 @@ app.post('/', async (req, res, next) => {
         }
 
         const results = products.map(product => {
-            const finalPrice = parseFloat((product.price * (1 - product.discountPercentage / 100)).toFixed(2))
             return {
                 title: product.title,
-                final_price: finalPrice,
+                final_price: parseFloat((product.price * (1 - product.discountPercentage / 100)).toFixed(2)),
                 description: product.description
             }
         })
@@ -136,7 +135,6 @@ app.use((err, req, res, next) => {
     const results = { 'code': err.statusCode, 'message': err.message }
     buildObject(req, res, err.statusCode, results)
 })
-
 
 app.listen(port, () => {
     console.log(`App listening on port ${port}`)
