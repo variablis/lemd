@@ -3,7 +3,10 @@ Pieprasījumi tiek sagaidīti / adresē.
 Jebkādu citu adrešu gadījumā tiek atgriezta kļūda 400 - Bad request.
 
 ### JSON formātā
-Accept: application/json\
+Header:
+```c
+Accept: application/json
+```
 Vaicājums:
 ```c
 {"query": "phone", "page": 1}
@@ -44,7 +47,10 @@ Model A19211 6.5-inch Super Retina HD display with OLED technology A12 Bionic ch
 ```
 
 ### XML formātā
-Accept: application/xml\
+Header:
+```c
+Accept: application/xml
+```
 Vaicājums:
 ```c
 <request>

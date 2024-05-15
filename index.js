@@ -12,7 +12,7 @@ app.use(xmlparser({explicitRoot: false, explicitArray: false}))
 
 
 // build error code and message
-const buildError = (code=400, msg='Bad Request response.') => {
+const buildError = (code = 400, msg = 'Bad Request response.') => {
     const error = new Error(msg)
     error.statusCode = code
     return error
@@ -57,7 +57,7 @@ app.use((req, res, next) => {
         type: 'messageIn',
         method: req.method,
         path: req.url,
-        body: req.rawBody? req.rawBody : req.body, // rawbody for xml
+        body: req.rawBody ? req.rawBody : req.body, // rawbody for xml
         dateTime: new Date(Date.now()).toISOString(),
     }
     console.log(incomingLog)
@@ -76,7 +76,7 @@ app.use((req, res, next) => {
             type: 'messageOut',
             dateTime: new Date(Date.now()).toISOString(),
             body: responseBody,
-            fault: res.locals.errorStack? res.locals.errorStack : ''
+            fault: res.locals.errorStack ? res.locals.errorStack : ''
         }
         console.log(outgoingLog)
     })
